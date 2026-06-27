@@ -1,0 +1,96 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:../tontine.db"
+}
+
+model User {
+  id           Int      @id @default(autoincrement())
+  name         String
+  email        String   @unique
+  password     String
+  role         String   @default("membre")
+  initials     String?
+  color        String   @default("#2A2A2A")
+  createdAt    DateTime @default(now())
+  membres      Membre[]
+  transactions Transaction[]
+  prets        Pret[]
+  @@map("users")
+}
+
+model Membre {
+  id           Int      @id @default(autoincrement())
+  user_id      Int?
+  name         String
+  initials     String?
+  role         String   @default("Membre")
+  paid         Int      @default(0)
+  turn_number  Int?
+  color        String   @default("#2A2A2A")
+  createdAt    DateTime @default(now())
+  user         User?    @relation(fields: [user_id], references: [id])
+  transactions Transaction[]
+  prets        Pret[]
+  tours        Tour[]
+  @@map("membres")
+}
+
+model Transaction {
+  id          Int      @id @default(autoincrement())
+  membre_id   Int?
+  user_id     Int?
+  name        String?
+  initials    String?
+  amount      Int
+  type        String
+  method      String?
+  color       String   @default("#333")
+  createdAt   DateTime @default(now())
+  membre      Membre?  @relation(fields: [membre_id], references: [id])
+  user        User?    @relation(fields: [user_id], references: [id])
+  @@map("transactions")
+}
+
+model Pret {
+  id           Int      @id @default(autoincrement())
+  membre_id    Int?
+  user_id      Int?
+  montant      Int
+  motif        String?
+  status       String   @default("En attente")
+  approbations String   @default("[]")
+  createdAt    DateTime @default(now())
+  membre       Membre?  @relation(fields: [membre_id], references: [id])
+  user         User?    @relation(fields: [user_id], references: [id])
+  @@map("prets")
+}
+
+model Tour {
+  id           Int      @id @default(autoincrement())
+  membre_id    Int?
+  ordre        Int?
+  date_prevue  String?
+  date_effective String?
+  statut       String   @default("en_attente")
+  montant      Int?
+  approbations String   @default("[]")
+  createdAt    DateTime @default(now())
+  membre       Membre?  @relation(fields: [membre_id], references: [id])
+  @@map("tours")
+}
+
+model Tontine {
+  id                   Int     @id @default(autoincrement())
+  nom                  String  @default("Tontine Nataal")
+  cagnotte             Int     @default(0)
+  tour_actuel          Int     @default(1)
+  tour_total           Int     @default(12)
+  cotisation_mensuelle Int     @default(50000)
+  progression          Int     @default(0)
+  taux_penalite        Float   @default(5.0)
+  @@map("tontine")
+}
