@@ -2,11 +2,11 @@
   "name": "tontine-nataal",
   "version": "1.0.0",
   "scripts": {
-    "start": "node server.js",
-    "dev:server": "nodemon --watch server.js --watch prisma server.js",
-    "dev:client": "npm run dev --prefix tontine-front",
+    "start": "node src/server.js",
+    "dev:server": "nodemon --watch src --watch prisma src/server.js",
+    "dev:client": "npm run dev --prefix ../tontine-front",
     "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
-    "build": "npm run build --prefix tontine-front",
+    "build": "npm run build --prefix ../tontine-front",
     "test": "cross-env NODE_ENV=test jest --detectOpenHandles --forceExit"
   },
   "jest": {

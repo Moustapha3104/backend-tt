@@ -1,5 +1,5 @@
 const request = require('supertest');
-const app = require('../server');
+const app = require('../src/server');
 
 describe('Penalties & Members API', () => {
     let gerantToken;

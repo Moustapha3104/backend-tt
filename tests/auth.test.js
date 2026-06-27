@@ -1,5 +1,5 @@
 const request = require('supertest');
-const app = require('../server');
+const app = require('../src/server');
 
 describe('Auth API', () => {
     it('should login successfully with valid credentials', async () => {

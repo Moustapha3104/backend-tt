@@ -26,7 +26,7 @@ if (!IS_TEST && !process.env.JWT_SECRET) {
 }
 
 // â”€â”€â”€ DATABASE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-const DB_PATH = IS_TEST ? ':memory:' : path.join(__dirname, 'tontine.db');
+const DB_PATH = IS_TEST ? ':memory:' : path.join(__dirname, '../tontine.db');
 const db = new Database(DB_PATH);
 db.pragma('journal_mode = WAL');
 db.pragma('foreign_keys = ON');
