@@ -21,6 +21,8 @@ exports.effectuer = async (req, res) => {
   // Pour les tests, on autorise plusieurs tirages dans le même mois
   // const [existing] = await db.query('SELECT id FROM tirages_mensuels WHERE mois = ? AND tontine_id = ?', [mois, tontine.id]);
   // if (existing.length > 0) return res.status(400).json({ success: false, message: 'Un tirage a déjà été effectué ce mois-ci' });
+  //const [existing] = await db.query('SELECT id FROM tirages_mensuels WHERE mois = ? AND tontine_id = ?', [mois, tontine.id]);
+  //if (existing.length > 0) return res.status(400).json({ success: false, message: 'Un tirage a déjà été effectué ce mois-ci' });
   
   let [eligibles] = await db.query('SELECT m.*, u.email FROM membres m LEFT JOIN users u ON m.user_id = u.id WHERE m.a_recu_tirage = 0 AND m.tontine_id = ?', [tontine.id]);
   if (eligibles.length === 0) {
