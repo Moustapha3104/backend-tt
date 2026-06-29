@@ -85,21 +85,21 @@ exports.create = async (req, res) => {
 };
 
 exports.getAll = async (req, res) => {
-  const [notifs] = await db.query('SELECT * FROM notifications WHERE (user_id = ? OR global_notif = 1) ORDER BY created_at DESC LIMIT 50', [req.user.id]);
+  const [notifs] = await db.query('SELECT *, is_read AS `read` FROM notifications WHERE (user_id = ? OR global_notif = 1) ORDER BY created_at DESC LIMIT 50', [req.user.id]);
   res.json({ success: true, data: notifs });
 };
 
 exports.getCount = async (req, res) => {
-  const [[row]] = await db.query('SELECT COUNT(*) as count FROM notifications WHERE (user_id = ? OR global_notif = 1) AND \`read\` = 0', [req.user.id]);
+  const [[row]] = await db.query('SELECT COUNT(*) as count FROM notifications WHERE (user_id = ? OR global_notif = 1) AND is_read = 0', [req.user.id]);
   res.json({ success: true, count: row.count });
 };
 
 exports.markRead = async (req, res) => {
-  await db.query('UPDATE notifications SET \`read\` = 1 WHERE id = ? AND (user_id = ? OR global_notif = 1)', [req.params.id, req.user.id]);
+  await db.query('UPDATE notifications SET is_read = 1 WHERE id = ? AND (user_id = ? OR global_notif = 1)', [req.params.id, req.user.id]);
   res.json({ success: true });
 };
 
 exports.markAllRead = async (req, res) => {
-  await db.query('UPDATE notifications SET \`read\` = 1 WHERE (user_id = ? OR global_notif = 1)', [req.user.id]);
+  await db.query('UPDATE notifications SET is_read = 1 WHERE (user_id = ? OR global_notif = 1)', [req.user.id]);
   res.json({ success: true });
 };

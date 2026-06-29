@@ -18,6 +18,9 @@ exports.effectuer = async (req, res) => {
   if (!montant) return res.status(400).json({ success: false, message: 'Montant requis' });
   const mois = new Date().toISOString().slice(0, 7);
   const tontine = await getCurrentTontine(req);
+  // Pour les tests, on autorise plusieurs tirages dans le même mois
+  // const [existing] = await db.query('SELECT id FROM tirages_mensuels WHERE mois = ? AND tontine_id = ?', [mois, tontine.id]);
+  // if (existing.length > 0) return res.status(400).json({ success: false, message: 'Un tirage a déjà été effectué ce mois-ci' });
   //const [existing] = await db.query('SELECT id FROM tirages_mensuels WHERE mois = ? AND tontine_id = ?', [mois, tontine.id]);
   //if (existing.length > 0) return res.status(400).json({ success: false, message: 'Un tirage a déjà été effectué ce mois-ci' });
   

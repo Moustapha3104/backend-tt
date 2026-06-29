@@ -3,10 +3,14 @@ const { getCurrentTontine } = require('../utils/helpers');
 
 exports.getEvolutionMensuelle = async (req, res) => {
   const data = ((await db.query(`
-    SELECT strftime('%m/%Y', created_at) as name,
+    SELECT DATE_FORMAT(created_at, '%m/%Y') as name,
            SUM(CASE WHEN type='cotisation' THEN amount ELSE 0 END) as entrees,
-           SUM(CASE WHEN type!='cotisation' THEN amount ELSE 0 END) as sorties
-    FROM transactions GROUP BY strftime('%Y-%m', created_at) ORDER BY created_at ASC LIMIT 12
+           SUM(CASE WHEN type!='cotisation' THEN amount ELSE 0 END) as sorties,
+           DATE_FORMAT(created_at, '%Y-%m') as group_month
+    FROM transactions 
+    GROUP BY DATE_FORMAT(created_at, '%Y-%m'), DATE_FORMAT(created_at, '%m/%Y') 
+    ORDER BY group_month ASC 
+    LIMIT 12
   `, []))[0]);
   res.json({ success: true, data });
 };
@@ -47,14 +51,15 @@ exports.getFinanceDashboard = async (req, res) => {
     const tauxCotisation = totalMembres > 0 ? Math.round((membresPaye / totalMembres) * 100) : 0;
 
     const chartData = ((await db.query(`
-      SELECT strftime('%d/%m', created_at) as name,
+      SELECT DATE_FORMAT(created_at, '%d/%m') as name,
              SUM(CASE WHEN type = 'cotisation' THEN amount ELSE 0 END) as cotisation,
              SUM(CASE WHEN type = 'penalite' THEN amount ELSE 0 END) as penalite,
-             SUM(CASE WHEN type IN ('pret', 'decaissement', 'tirage') THEN amount ELSE 0 END) as pret
+             SUM(CASE WHEN type IN ('pret', 'decaissement', 'tirage') THEN amount ELSE 0 END) as pret,
+             DATE_FORMAT(created_at, '%Y-%m-%d') as group_date
       FROM transactions
       WHERE tontine_id = ?
-      GROUP BY strftime('%Y-%m-%d', created_at)
-      ORDER BY created_at DESC
+      GROUP BY DATE_FORMAT(created_at, '%Y-%m-%d'), DATE_FORMAT(created_at, '%d/%m')
+      ORDER BY group_date DESC
       LIMIT 20
     `, [tontine.id]))[0]).reverse();
 
