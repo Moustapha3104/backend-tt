@@ -3,6 +3,11 @@ const jwt = require('jsonwebtoken');
 const db = require('../config/db');
 const { JWT_SECRET } = require('../config/env');
 const { logAction } = require('../utils/helpers');
+const fs = require('fs');
+const path = require('path');
+
+const UPLOADS_DIR = path.join(__dirname, '../../uploads');
+if (!fs.existsSync(UPLOADS_DIR)) fs.mkdirSync(UPLOADS_DIR, { recursive: true });
 
 exports.register = async (req, res) => {
   const { name, email, password } = req.body;
@@ -34,16 +39,46 @@ exports.login = async (req, res) => {
 };
 
 exports.me = async (req, res) => {
-  const user = ((await db.query('SELECT id, name, email, role FROM users WHERE id = ?', [req.user.id]))[0][0]);
+  const user = ((await db.query('SELECT id, name, email, role, photo FROM users WHERE id = ?', [req.user.id]))[0][0]);
   if (!user) return res.status(404).json({ success: false, message: 'Utilisateur introuvable' });
   res.json({ success: true, user });
 };
 
 exports.updateProfile = async (req, res) => {
   const { name, email, photo } = req.body;
-  ((await db.query('UPDATE users SET name = ?, email = ?, photo = ? WHERE id = ?', [name, email, photo, req.user.id]))[0]);
-  ((await db.query('UPDATE membres SET name = ?, photo = ? WHERE user_id = ?', [name, photo, req.user.id]))[0]);
-  res.json({ success: true, message: "Profil mis à jour" });
+  if (!name || !email) return res.status(400).json({ success: false, message: 'Nom et email requis' });
+
+  try {
+    const user = ((await db.query('SELECT photo FROM users WHERE id = ?', [req.user.id]))[0][0]);
+    let photoPath = user ? user.photo : '';
+
+    if (photo && photo.startsWith('data:image')) {
+      if (photoPath) {
+        const oldPath = path.join(__dirname, '../../', photoPath);
+        if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
+      }
+      const matches = photo.match(/^data:image\/(\w+);base64,(.+)$/);
+      if (matches) {
+        const ext = matches[1];
+        const filename = `user_${req.user.id}_${Date.now()}.${ext}`;
+        fs.writeFileSync(path.join(UPLOADS_DIR, filename), Buffer.from(matches[2], 'base64'));
+        photoPath = `/uploads/${filename}`;
+      }
+    } else if (photo === '') {
+      if (photoPath) {
+        const oldPath = path.join(__dirname, '../../', photoPath);
+        if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
+      }
+      photoPath = '';
+    }
+
+    ((await db.query('UPDATE users SET name = ?, email = ?, photo = ? WHERE id = ?', [name, email, photoPath, req.user.id]))[0]);
+    ((await db.query('UPDATE membres SET name = ?, photo = ? WHERE user_id = ?', [name, photoPath, req.user.id]))[0]);
+
+    res.json({ success: true, message: "Profil mis à jour", photo: photoPath });
+  } catch (e) {
+    res.status(500).json({ success: false, message: e.message });
+  }
 };
 
 exports.updatePassword = async (req, res) => {
